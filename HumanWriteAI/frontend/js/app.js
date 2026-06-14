@@ -12,6 +12,7 @@ const API_BASE = 'http://127.0.0.1:5000/api';
 // ===================================================================
 let currentUser = null;
 let selectedFile = null;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 // Load session from localStorage on page load
 (function initSession() {
@@ -378,11 +379,23 @@ document.getElementById('dropzone').addEventListener('click', () => {
 });
 
 function processFile(file) {
+    // Validate file extension
     const allowed = ['.pdf', '.docx', '.txt'];
     const ext = '.' + file.name.split('.').pop().toLowerCase();
 
     if (!allowed.includes(ext)) {
         showError('upload', 'Unsupported file format. Please upload PDF, DOCX, or TXT files.');
+        document.getElementById('dropzone').classList.add('has-error');
+        setTimeout(() => document.getElementById('dropzone').classList.remove('has-error'), 500);
+        return;
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+        const maxMB = MAX_FILE_SIZE / (1024 * 1024);
+        showError('upload', `File is too large. Maximum size is ${maxMB}MB. Your file: ${formatFileSize(file.size)}.`);
+        document.getElementById('dropzone').classList.add('has-error');
+        setTimeout(() => document.getElementById('dropzone').classList.remove('has-error'), 500);
         return;
     }
 
@@ -394,6 +407,9 @@ function processFile(file) {
     document.getElementById('fileName').textContent = file.name;
     document.getElementById('fileSize').textContent = formatFileSize(file.size);
     document.getElementById('uploadBtn').disabled = false;
+
+    // Hide any previous messages
+    hideUploadMessages();
 }
 
 function clearFile() {
@@ -402,9 +418,26 @@ function clearFile() {
     document.getElementById('dropzoneContent').style.display = '';
     document.getElementById('fileInfo').style.display = 'none';
     document.getElementById('uploadBtn').disabled = true;
+    hideUploadMessages();
+    clearErrors('upload');
 }
 
-async function handleUpload() {
+function hideUploadMessages() {
+    document.getElementById('uploadSuccess').style.display = 'none';
+    document.getElementById('uploadErrorBlock').style.display = 'none';
+    document.getElementById('uploadProgress').style.display = 'none';
+}
+
+function updateProgress(percent, label, statusText) {
+    const progressEl = document.getElementById('uploadProgress');
+    progressEl.style.display = 'block';
+    document.getElementById('progressBar').style.width = `${percent}%`;
+    document.getElementById('progressPercent').textContent = `${percent}%`;
+    if (label) document.getElementById('progressLabel').textContent = label;
+    if (statusText) document.getElementById('progressStatus').textContent = statusText;
+}
+
+function handleUpload() {
     if (!selectedFile) return;
     if (!currentUser) {
         showToast('Please sign in to upload documents.', 'error');
@@ -413,28 +446,100 @@ async function handleUpload() {
     }
 
     clearErrors('upload');
-    const btn = document.getElementById('uploadBtn');
-    setLoading(btn, true);
+    hideUploadMessages();
 
+    const btn = document.getElementById('uploadBtn');
+    btn.style.display = 'none'; // Hide the button during upload
+
+    // Show progress bar
+    updateProgress(0, 'Uploading...', 'Starting upload...');
+
+    // Build form data
     const formData = new FormData();
     formData.append('file', selectedFile);
     formData.append('user_id', currentUser.id);
 
-    try {
-        const uploadRes = await fetch(apiUrl('/documents/upload'), {
-            method: 'POST',
-            body: formData,
-        });
+    // Use XMLHttpRequest for progress tracking
+    const xhr = new XMLHttpRequest();
 
-        const uploadData = await uploadRes.json();
-
-        if (!uploadRes.ok) {
-            showError('upload', uploadData.error || 'Upload failed.');
-            return;
+    xhr.upload.addEventListener('progress', function (e) {
+        if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            updateProgress(percent, 'Uploading...', `Uploading ${formatFileSize(e.loaded)} of ${formatFileSize(e.total)}`);
         }
+    });
 
-        showToast('Document uploaded successfully!', 'success');
-        const docId = uploadData.document.id;
+    xhr.addEventListener('loadstart', function () {
+        updateProgress(0, 'Uploading...', 'Connecting to server...');
+    });
+
+    xhr.addEventListener('error', function () {
+        btn.style.display = '';
+        document.getElementById('uploadProgress').style.display = 'none';
+        showError('upload', 'Could not connect to the server. Is the backend running?');
+        showUploadError('Network error. Please check your connection and try again.');
+    });
+
+    xhr.addEventListener('abort', function () {
+        btn.style.display = '';
+        document.getElementById('uploadProgress').style.display = 'none';
+        showError('upload', 'Upload was cancelled.');
+        showUploadError('Upload cancelled.');
+    });
+
+    xhr.addEventListener('load', function () {
+        // Handle upload complete
+        if (xhr.status >= 200 && xhr.status < 300) {
+            // Upload succeeded
+            updateProgress(100, 'Upload complete!', 'Processing document...');
+
+            let uploadData;
+            try {
+                uploadData = JSON.parse(xhr.responseText);
+            } catch {
+                btn.style.display = '';
+                document.getElementById('uploadProgress').style.display = 'none';
+                showError('upload', 'Invalid server response.');
+                showUploadError('Invalid server response.');
+                return;
+            }
+
+            const docId = uploadData.document ? uploadData.document.id : null;
+            if (!docId) {
+                btn.style.display = '';
+                document.getElementById('uploadProgress').style.display = 'none';
+                showError('upload', uploadData.error || 'Upload failed.');
+                showUploadError(uploadData.error || 'Upload failed.');
+                return;
+            }
+
+            // Show success message for upload
+            document.getElementById('uploadProgress').style.display = 'none';
+            showUploadSuccess('Document uploaded! Now analyzing...');
+
+            // Proceed to analysis
+            analyseUploadedDocument(docId, btn);
+        } else {
+            // Upload failed
+            btn.style.display = '';
+            document.getElementById('uploadProgress').style.display = 'none';
+            let errMsg = 'Upload failed.';
+            try {
+                const errData = JSON.parse(xhr.responseText);
+                errMsg = errData.error || errMsg;
+            } catch { /* ignore */ }
+            showError('upload', errMsg);
+            showUploadError(errMsg);
+        }
+    });
+
+    xhr.open('POST', apiUrl('/documents/upload'), true);
+    xhr.send(formData);
+}
+
+async function analyseUploadedDocument(docId, btn) {
+    try {
+        updateProgress(50, 'Analyzing document...', 'Running AI analysis...');
 
         const analyseRes = await fetch(apiUrl(`/documents/${docId}/analyse`), {
             method: 'POST',
@@ -443,21 +548,66 @@ async function handleUpload() {
         const analyseData = await analyseRes.json();
 
         if (!analyseRes.ok) {
-            showError('upload', analyseData.error || 'Analysis failed.');
+            btn.style.display = '';
+            document.getElementById('uploadProgress').style.display = 'none';
+            const errMsg = analyseData.error || 'Analysis failed.';
+            showError('upload', errMsg);
+            showUploadError(errMsg);
             return;
         }
 
+        // Analysis succeeded
+        updateProgress(100, 'Analysis complete!', 'Redirecting to results...');
         showToast('Analysis complete!', 'success');
-        displayUploadResults(analyseData.analysis);
         clearFile();
+
+        // Show success message
+        showUploadSuccess('Analysis complete! Redirecting...');
+
+        // Hide the results card, redirect to analyze page with results
+        document.getElementById('uploadResults').style.display = 'none';
+
+        // Small delay then redirect
+        setTimeout(() => {
+            // Set the text analysis results from the document analysis
+            const analysis = analyseData.analysis || analyseData;
+            if (analysis) {
+                // Store analysis data for the analyze page to pick up
+                window._pendingUploadAnalysis = analysis;
+            }
+            // Redirect to analyze page
+            showPage('analyze');
+            // If we have analysis data, show it on the analyze page
+            if (window._pendingUploadAnalysis) {
+                displayTextResults(window._pendingUploadAnalysis);
+                window._pendingUploadAnalysis = null;
+            }
+        }, 1200);
+
     } catch (err) {
+        btn.style.display = '';
+        document.getElementById('uploadProgress').style.display = 'none';
         showError('upload', 'Could not connect to the server. Is the backend running?');
-    } finally {
-        setLoading(btn, false);
+        showUploadError('Could not connect to the server.');
     }
 }
 
+function showUploadSuccess(message) {
+    const el = document.getElementById('uploadSuccess');
+    document.getElementById('successText').textContent = message;
+    el.style.display = 'flex';
+    document.getElementById('uploadErrorBlock').style.display = 'none';
+}
+
+function showUploadError(message) {
+    const el = document.getElementById('uploadErrorBlock');
+    document.getElementById('errorText').textContent = message;
+    el.style.display = 'flex';
+    document.getElementById('uploadSuccess').style.display = 'none';
+}
+
 function displayUploadResults(analysis) {
+    // This is kept for backward compatibility but redirects to analyze page
     const aiScore = analysis.ai_score != null ? analysis.ai_score : 0;
     const humanScore = analysis.human_score != null ? analysis.human_score : 0;
     const confidence = analysis.confidence != null ? analysis.confidence : 0;

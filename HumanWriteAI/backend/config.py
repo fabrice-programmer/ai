@@ -24,8 +24,13 @@ class BaseConfig:
     }
 
     # ── Uploads ────────────────────────────────────────────────
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB (Flask global limit)
     UPLOAD_FOLDER = str(BASE_DIR / "uploads")
+
+    # ── Document Service Settings ──────────────────────────────
+    MAX_FILE_SIZE_MB = 10                          # per-file limit in MB
+    ALLOWED_EXTENSIONS = {".docx"}                 # only .docx files
+    UPLOAD_SUBDIR = "documents"                    # subfolder within uploads
 
 
 class DevelopmentConfig(BaseConfig):

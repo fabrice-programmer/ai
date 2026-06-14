@@ -1,0 +1,10 @@
+[
+  {
+    "text": "Hello",
+    "label": "human"
+  },
+  {
+    "text": "AI",
+    "label": "ai"
+  }
+]

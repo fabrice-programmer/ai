@@ -32,6 +32,9 @@ class Document(db.Model):
         index=True,
     )  # pending | processing | completed | failed
 
+    # Absolute path to the stored file on disk
+    stored_path = db.Column(db.String(500), nullable=True)
+
     # ── Relationships ──────────────────────────────────────────
     user = db.relationship("User", back_populates="documents")
     analyses = db.relationship(

@@ -841,6 +841,8 @@ body {
     cursor: pointer;
     transition: all var(--transition-normal);
     margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
 }
 
 .dropzone:hover,
@@ -849,9 +851,39 @@ body {
     background: rgba(108, 99, 255, 0.05);
 }
 
+.dropzone.dragover {
+    border-color: var(--accent-secondary);
+    background: rgba(0, 217, 166, 0.06);
+    transform: scale(1.01);
+    box-shadow: 0 0 30px rgba(0, 217, 166, 0.15);
+}
+
+.dropzone.dragover .dropzone-icon {
+    animation: bounce 0.6s ease infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+.dropzone.has-error {
+    border-color: var(--color-ai);
+    background: rgba(255, 107, 107, 0.05);
+    animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    50% { transform: translateX(6px); }
+    75% { transform: translateX(-4px); }
+}
+
 .dropzone-icon {
     font-size: 3rem;
     margin-bottom: 12px;
+    transition: transform var(--transition-normal);
 }
 
 .dropzone-text {
@@ -902,6 +934,121 @@ body {
     display: block;
     font-size: 0.8rem;
     color: var(--text-muted);
+}
+
+/* ---------- Upload Progress Bar ---------- */
+.upload-progress {
+    margin-bottom: 20px;
+    padding: 16px 18px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.progress-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.progress-percent {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+}
+
+.progress-bar-wrap {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 100px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 100px;
+    background: var(--gradient-primary);
+    transition: width 0.3s ease;
+    box-shadow: 0 0 8px rgba(108, 99, 255, 0.3);
+}
+
+.progress-status {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: center;
+    min-height: 1.2em;
+}
+
+/* ---------- Upload Messages (Success / Error) ---------- */
+.upload-message {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.upload-message .msg-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.upload-message .msg-text {
+    flex: 1;
+}
+
+.upload-success {
+    background: rgba(0, 217, 166, 0.08);
+    border: 1px solid rgba(0, 217, 166, 0.2);
+    color: var(--color-human);
+}
+
+.upload-error-msg {
+    background: rgba(255, 107, 107, 0.08);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+    color: var(--color-ai);
+}
+
+/* ---------- Redirect Banner (after upload) ---------- */
+.redirect-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, rgba(108, 99, 255, 0.12), rgba(0, 217, 166, 0.08));
+    border: 1px solid var(--accent-primary);
+    border-radius: var(--radius-sm);
+    animation: slideUp 0.4s ease;
+}
+
+.redirect-banner-text {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.redirect-banner-text span {
+    color: var(--accent-secondary);
+    font-weight: 600;
 }
 
 /* ---------- Dashboard ---------- */

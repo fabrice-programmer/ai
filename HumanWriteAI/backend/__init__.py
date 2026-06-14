@@ -61,7 +61,9 @@ def _register_blueprints(app: Flask) -> None:
     from backend.routes.auth import auth_bp
     from backend.routes.documents import documents_bp
     from backend.routes.analysis import analysis_bp
+    from backend.routes.download import download_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(documents_bp)
     app.register_blueprint(analysis_bp)
+    app.register_blueprint(download_bp)

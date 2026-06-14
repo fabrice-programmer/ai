@@ -26,6 +26,12 @@ class Analysis(db.Model):
         default=lambda: datetime.now(timezone.utc),
     )
 
+    # ── Paragraph-level results (JSON) ─────────────────────────────
+    # Stores a list of per-paragraph analysis results:
+    #   [{"paragraph_index": 0, "text_preview": "...", "ai_score": 0.9,
+    #     "human_score": 0.1, "confidence": 0.95}, ...]
+    paragraphs_data = db.Column(db.JSON, nullable=True)
+
     # ── Relationships ──────────────────────────────────────────
     document = db.relationship("Document", back_populates="analyses")
 
@@ -38,6 +44,7 @@ class Analysis(db.Model):
             "ai_score": self.ai_score,
             "human_score": self.human_score,
             "confidence": self.confidence,
+            "paragraphs_data": self.paragraphs_data,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
