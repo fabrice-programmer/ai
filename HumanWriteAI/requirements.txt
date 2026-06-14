@@ -1,0 +1,27 @@
+# Core
+flask
+flask-cors
+flask-sqlalchemy
+flask-migrate
+python-dotenv
+werkzeug
+
+# Database
+psycopg2-binary
+
+# Validation
+marshmallow
+email-validator
+
+# Document processing
+python-docx
+
+# AI/ML
+pandas
+numpy
+scikit-learn
+torch
+transformers
+datasets
+accelerate
+sentence-transformers

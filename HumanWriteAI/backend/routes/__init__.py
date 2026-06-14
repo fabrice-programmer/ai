@@ -1,0 +1,1 @@
+"""Route blueprints — keep routes thin; delegate logic to services."""
