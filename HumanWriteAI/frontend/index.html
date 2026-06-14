@@ -1,22 +1,388 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>HumanWriteAI</title>
-<link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HumanWriteAI — AI Text Detector</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
 
-<h1>HumanWriteAI</h1>
+    <!-- ====== Navigation ====== -->
+    <nav class="navbar" id="navbar">
+        <div class="container nav-container">
+            <a href="#" class="logo" id="logoLink">
+                <span class="logo-icon">🧠</span>
+                <span class="logo-text">HumanWrite<span class="logo-highlight">AI</span></span>
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#" class="nav-link active" data-page="home">Home</a></li>
+                <li id="navDashboard" style="display:none;"><a href="#" class="nav-link" data-page="dashboard">Dashboard</a></li>
+                <li id="navAnalyze" style="display:none;"><a href="#" class="nav-link" data-page="analyze">Analyze</a></li>
+                <li id="navUpload" style="display:none;"><a href="#" class="nav-link" data-page="upload">Upload</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="btn btn-primary btn-sm" id="btnLogin" onclick="showPage('login')">Sign In</button>
+                <button class="btn btn-outline btn-sm" id="btnRegister" onclick="showPage('register')">Register</button>
+                <button class="btn btn-outline btn-sm" id="btnLogout" style="display:none;" onclick="logout()">Logout</button>
+            </div>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
 
-<input type="file" id="file">
+    <!-- ====== Page: Home ====== -->
+    <section class="page active-page" id="page-home">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-badge">AI Detection Engine v2.0</div>
+                    <h1 class="hero-title">Is it Human or <span class="gradient-text">AI</span>?</h1>
+                    <p class="hero-subtitle">
+                        Detect AI-generated text with advanced machine learning.
+                        Upload documents or paste text to get instant analysis.
+                    </p>
+                    <div class="hero-cta">
+                        <button class="btn btn-primary btn-lg" onclick="showPage('analyze')">
+                            Analyze Text <span class="btn-arrow">→</span>
+                        </button>
+                        <button class="btn btn-outline btn-lg" onclick="showPage('upload')">
+                            Upload Document
+                        </button>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="hero-card">
+                        <div class="hc-header">
+                            <span class="hc-dot green"></span>
+                            <span class="hc-label">Analysis Result</span>
+                        </div>
+                        <div class="hc-body">
+                            <div class="hc-score">
+                                <div class="hc-score-label">Human</div>
+                                <div class="hc-bar">
+                                    <div class="hc-fill human" style="width:72%"></div>
+                                </div>
+                                <div class="hc-score-val">72%</div>
+                            </div>
+                            <div class="hc-score">
+                                <div class="hc-score-label">AI</div>
+                                <div class="hc-bar">
+                                    <div class="hc-fill ai" style="width:28%"></div>
+                                </div>
+                                <div class="hc-score-val">28%</div>
+                            </div>
+                            <div class="hc-confidence">
+                                <span class="conf-label">Confidence</span>
+                                <span class="conf-value high">High</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-<button onclick="upload()">Analyze</button>
+        <div class="features-section">
+            <div class="container">
+                <h2 class="section-title">Why HumanWriteAI?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <h3>High Accuracy</h3>
+                        <p>Advanced transformer-based model trained on millions of samples.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Real-Time Analysis</h3>
+                        <p>Get results in seconds with our optimized inference engine.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Privacy First</h3>
+                        <p>Your documents are encrypted and never shared with third parties.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📄</div>
+                        <h3>Multiple Formats</h3>
+                        <p>Supports PDF, DOCX, TXT and many more document formats.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-<pre id="result"></pre>
+    <!-- ====== Page: Login ====== -->
+    <section class="page" id="page-login">
+        <div class="container auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h2>Welcome Back</h2>
+                    <p>Sign in to your account</p>
+                </div>
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" class="form-input" placeholder="Enter your username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required>
+                    </div>
+                    <div class="form-error" id="loginError"></div>
+                    <button type="submit" class="btn btn-primary btn-full" id="loginBtn">
+                        <span class="btn-text">Sign In</span>
+                        <span class="btn-spinner" style="display:none;"></span>
+                    </button>
+                </form>
+                <div class="auth-footer">
+                    Don't have an account? <a href="#" onclick="showPage('register')">Register</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
-<script src="js/app.js"></script>
+    <!-- ====== Page: Register ====== -->
+    <section class="page" id="page-register">
+        <div class="container auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h2>Create Account</h2>
+                    <p>Start detecting AI-generated text</p>
+                </div>
+                <form id="registerForm" onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label for="regUsername">Username</label>
+                        <input type="text" id="regUsername" class="form-input" placeholder="Choose a username" minlength="3" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regEmail">Email</label>
+                        <input type="email" id="regEmail" class="form-input" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword">Password</label>
+                        <input type="password" id="regPassword" class="form-input" placeholder="Create a password (min 8 chars)" minlength="8" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regConfirm">Confirm Password</label>
+                        <input type="password" id="regConfirm" class="form-input" placeholder="Confirm your password" required>
+                    </div>
+                    <div class="form-error" id="registerError"></div>
+                    <button type="submit" class="btn btn-primary btn-full" id="registerBtn">
+                        <span class="btn-text">Create Account</span>
+                        <span class="btn-spinner" style="display:none;"></span>
+                    </button>
+                </form>
+                <div class="auth-footer">
+                    Already have an account? <a href="#" onclick="showPage('login')">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
+    <!-- ====== Page: Analyze (Text Input) ====== -->
+    <section class="page" id="page-analyze">
+        <div class="container">
+            <div class="analyze-header">
+                <h2>Analyze Text</h2>
+                <p>Paste any text below to check if it was generated by AI.</p>
+            </div>
+            <div class="analyze-card">
+                <form onsubmit="handleTextAnalysis(event)">
+                    <div class="form-group">
+                        <label for="inputText">Enter Text</label>
+                        <textarea id="inputText" class="form-textarea" rows="8" placeholder="Paste or type the text you want to analyze..." required></textarea>
+                        <div class="textarea-footer">
+                            <span id="charCount">0 characters</span>
+                        </div>
+                    </div>
+                    <div class="form-error" id="analyzeError"></div>
+                    <button type="submit" class="btn btn-primary btn-full" id="analyzeBtn">
+                        <span class="btn-text">Analyze Text</span>
+                        <span class="btn-spinner" style="display:none;"></span>
+                    </button>
+                </form>
+            </div>
+            <!-- Results placeholder -->
+            <div class="results-card" id="textResults" style="display:none;">
+                <div class="results-header">
+                    <h3>Analysis Results</h3>
+                    <button class="btn btn-sm btn-outline" onclick="clearTextResults()">Clear</button>
+                </div>
+                <div class="results-grid">
+                    <div class="result-item">
+                        <div class="result-label">Human Score</div>
+                        <div class="result-bar-wrap">
+                            <div class="result-bar">
+                                <div class="result-fill human" id="textHumanBar" style="width:0%"></div>
+                            </div>
+                        </div>
+                        <div class="result-value" id="textHumanVal">0%</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">AI Score</div>
+                        <div class="result-bar-wrap">
+                            <div class="result-bar">
+                                <div class="result-fill ai" id="textAiBar" style="width:0%"></div>
+                            </div>
+                        </div>
+                        <div class="result-value" id="textAiVal">0%</div>
+                    </div>
+                </div>
+                <div class="result-confidence" id="textConfidence">
+                    <span class="conf-badge">Confidence: <strong>—</strong></span>
+                    <span class="result-verdict" id="textVerdict"></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== Page: Upload Document ====== -->
+    <section class="page" id="page-upload">
+        <div class="container">
+            <div class="upload-header">
+                <h2>Upload Document</h2>
+                <p>Upload a document for analysis. Supported formats: PDF, DOCX, TXT.</p>
+            </div>
+            <div class="upload-card">
+                <div class="dropzone" id="dropzone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+                    <div class="dropzone-content" id="dropzoneContent">
+                        <div class="dropzone-icon">📄</div>
+                        <p class="dropzone-text">Drag & drop your file here</p>
+                        <p class="dropzone-hint">or click to browse</p>
+                    </div>
+                    <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.txt" onchange="handleFileSelect(event)" hidden>
+                </div>
+                <div class="file-info" id="fileInfo" style="display:none;">
+                    <div class="file-icon">📄</div>
+                    <div class="file-details">
+                        <span class="file-name" id="fileName"></span>
+                        <span class="file-size" id="fileSize"></span>
+                    </div>
+                    <button class="btn btn-sm btn-outline" onclick="clearFile()">Remove</button>
+                </div>
+                <div class="form-error" id="uploadError"></div>
+                <button class="btn btn-primary btn-full" id="uploadBtn" onclick="handleUpload()" disabled>
+                    <span class="btn-text">Upload & Analyze</span>
+                    <span class="btn-spinner" style="display:none;"></span>
+                </button>
+            </div>
+            <div class="results-card" id="uploadResults" style="display:none;">
+                <div class="results-header">
+                    <h3>Upload Results</h3>
+                    <button class="btn btn-sm btn-outline" onclick="clearUploadResults()">Clear</button>
+                </div>
+                <div class="results-grid">
+                    <div class="result-item">
+                        <div class="result-label">Human Score</div>
+                        <div class="result-bar-wrap">
+                            <div class="result-bar">
+                                <div class="result-fill human" id="uploadHumanBar" style="width:0%"></div>
+                            </div>
+                        </div>
+                        <div class="result-value" id="uploadHumanVal">0%</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">AI Score</div>
+                        <div class="result-bar-wrap">
+                            <div class="result-bar">
+                                <div class="result-fill ai" id="uploadAiBar" style="width:0%"></div>
+                            </div>
+                        </div>
+                        <div class="result-value" id="uploadAiVal">0%</div>
+                    </div>
+                </div>
+                <div class="result-confidence" id="uploadConfidence">
+                    <span class="conf-badge">Confidence: <strong>—</strong></span>
+                    <span class="result-verdict" id="uploadVerdict"></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== Page: Dashboard ====== -->
+    <section class="page" id="page-dashboard">
+        <div class="container">
+            <div class="dashboard-header">
+                <div>
+                    <h2>Dashboard</h2>
+                    <p id="dashboardGreeting">Welcome back!</p>
+                </div>
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <span class="stat-value" id="statDocuments">0</span>
+                        <span class="stat-label">Documents</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value" id="statAnalyses">0</span>
+                        <span class="stat-label">Analyses</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-tabs">
+                <button class="tab-btn active" onclick="switchDashboardTab('documents', this)">Documents</button>
+                <button class="tab-btn" onclick="switchDashboardTab('analyses', this)">Analyses</button>
+            </div>
+
+            <div id="dashboardDocuments">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3>Recent Documents</h3>
+                        <button class="btn btn-sm btn-outline" onclick="showPage('upload')">+ Upload</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="table" id="documentsTable">
+                            <thead>
+                                <tr>
+                                    <th>Filename</th>
+                                    <th>Size</th>
+                                    <th>Status</th>
+                                    <th>Uploaded</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="documentsBody">
+                                <tr><td colspan="5" class="empty-state">No documents yet. <a href="#" onclick="showPage('upload')">Upload your first document</a></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dashboardAnalyses" style="display:none;">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3>Analysis History</h3>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="table" id="analysesTable">
+                            <thead>
+                                <tr>
+                                    <th>Document</th>
+                                    <th>Human Score</th>
+                                    <th>AI Score</th>
+                                    <th>Confidence</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analysesBody">
+                                <tr><td colspan="5" class="empty-state">No analyses yet. <a href="#" onclick="showPage('analyze')">Analyze some text</a></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== Toast notification container ====== -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/app.js"></script>
 </body>
 </html>
